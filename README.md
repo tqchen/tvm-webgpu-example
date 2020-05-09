@@ -1,11 +1,13 @@
 TVM WebGPU Example
 ==================
 
-This is an example project for building a tvm webgpu-backed module  and
-deploy it to the web
+This is an example project for building a tvm webgpu-backed module and deploy it to the web.
 
+You will need the latest version of TVM on the master.
+Please install the TVM via source build(by setting the PYTHONPATH).
+Checkout the steps under `tvm/web` to enable webgpu support.
 
-First build the necessary packages in `tvm/web`
+Build the dependent files in the `tvm/web`
 ```bash
 cd /path/to/tvm/web
 make
