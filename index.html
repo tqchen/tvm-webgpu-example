@@ -1,21 +1,4 @@
 <html>
-  <!--- Licensed to the Apache Software Foundation (ASF) under one -->
-  <!--- or more contributor license agreements.  See the NOTICE file -->
-  <!--- distributed with this work for additional information -->
-  <!--- regarding copyright ownership.  The ASF licenses this file -->
-  <!--- to you under the Apache License, Version 2.0 (the -->
-  <!--- "License"); you may not use this file except in compliance -->
-  <!--- with the License.  You may obtain a copy of the License at -->
-
-  <!---   http://www.apache.org/licenses/LICENSE-2.0 -->
-
-  <!--- Unless required by applicable law or agreed to in writing, -->
-  <!--- software distributed under the License is distributed on an -->
-  <!--- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY -->
-  <!--- KIND, either express or implied.  See the License for the -->
-  <!--- specific language governing permissions and limitations -->
-  <!--- under the License. -->
-
   <head>
     <title>TVM WebGPU MobileNet Demo</title>
   </head>
@@ -193,14 +176,15 @@
       <li>
         You need a browser with web GPU capability. Tested on Chrome Canary
       </li>
-      <li>End to end time cost includes data copy from/to GPU</li>
-      <li>GPU run benchmarks are runs that only invokes compute without data copy. By comparing run benchmarks
-          with end to end time cost, we can get a sense of the overhead of copy cost.
+      <li>End to end time cost includes data copy from/to the GPU.</li>
+      <li>GPU run benchmarks only invoke compute without data copy.
+        We can get a sense of copy overhead by comparing benchmark runs to the end to end timing.
       </li>
-      <li>Try to click classify on the same image multiple times,
-        you will notice subsequent runs becomes faster.
-        These number will gives us a sense about what
-        is the time cost once the GPU driver execution stablizes.
+      <li>Try to click classify multiple times,
+        you will notice that the classifier becomes faster.
+        This could due to GPU driver execution stablizes.
+        The stablized GPU cost helps us to know what is the best performance
+        we can get if we run the model continuously(e.g. in an always on detetcor demo).
       </li>
     </ul>
     <h2>Options</h2>

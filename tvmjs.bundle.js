@@ -2014,96 +2014,6 @@
 	        return ret;
 	    }
 	}
-	function registerSystem(inst, logger) {
-	    /**
-	     * Preprocess image for standard Imagenet models.
-	    */
-	    function preprocImage(imageData) {
-	        support.assert(imageData instanceof ImageData, "Input must be ImageData.");
-	        support.assert(imageData.width == 224, "Width must be 224.");
-	        support.assert(imageData.height == 224, "Height must be 224.");
-	        const width = imageData.width;
-	        const height = imageData.height;
-	        const npixels = width * height;
-	        const rgbaU8 = imageData.data;
-	        support.assert(rgbaU8.length == npixels * 4, "Image should be RGBA.");
-	        // Drop alpha channel. Resnet does not need it.
-	        const rgbU8 = new Uint8Array(npixels * 3);
-	        for (let i = 0; i < npixels; ++i) {
-	            rgbU8[i * 3] = rgbaU8[i * 4];
-	            rgbU8[i * 3 + 1] = rgbaU8[i * 4 + 1];
-	            rgbU8[i * 3 + 2] = rgbaU8[i * 4 + 2];
-	        }
-	        // Cast to float and normalize.
-	        const rgbF32 = new Float32Array(npixels * 3);
-	        for (let i = 0; i < npixels; ++i) {
-	            rgbF32[i * 3] = (rgbU8[i * 3] - 123.0) / 58.395;
-	            rgbF32[i * 3 + 1] = (rgbU8[i * 3 + 1] - 117.0) / 57.12;
-	            rgbF32[i * 3 + 2] = (rgbU8[i * 3 + 2] - 104.0) / 57.375;
-	        }
-	        // Transpose. Resnet expects 3 greyscale images.
-	        const data = new Float32Array(npixels * 3);
-	        for (let i = 0; i < npixels; ++i) {
-	            data[i] = rgbF32[i * 3];
-	            data[npixels + i] = rgbF32[i * 3 + 1];
-	            data[npixels * 2 + i] = rgbF32[i * 3 + 2];
-	        }
-	        return data;
-	    }
-	    function getClassfier(graphJson, paramsBinary, ctx) {
-	        const syslib = inst.systemLib();
-	        const executor = inst.createGraphRuntime(graphJson, syslib, ctx);
-	        syslib.dispose();
-	        executor.loadParams(paramsBinary);
-	        const inputData = inst.empty([1, 3, 224, 224], "float32", inst.cpu());
-	        const outputData = inst.empty([1, 1000], "float32", inst.cpu());
-	        return (data) => __awaiter(this, void 0, void 0, function* () {
-	            inputData.copyFrom(data);
-	            executor.setInput("data", inputData);
-	            executor.run();
-	            const outputExec = executor.getOutput(0);
-	            outputData.copyFrom(outputExec);
-	            outputExec.dispose();
-	            yield ctx.sync();
-	            console.log("Stable run results: ", yield executor.benchmarkRuns(ctx));
-	            return outputData.toArray();
-	        });
-	    }
-	    function loadImage(uri) {
-	        return new Promise((resolve, reject) => {
-	            const image = new Image();
-	            image.src = uri;
-	            image.setAttribute("crossOrigin", "anonymous");
-	            image.onload = () => resolve(image);
-	            image.onerror = reject;
-	        });
-	    }
-	    function runGraph(data, name) {
-	        return __awaiter(this, void 0, void 0, function* () {
-	            const graphJson = yield (yield fetch("./" + name + ".json")).text();
-	            const synset = yield (yield fetch("./imagenet1k_synset.json")).json();
-	            const paramsBinary = new Uint8Array(yield (yield fetch("./" + name + ".params")).arrayBuffer());
-	            const imageUrl = "./cat.png";
-	            logger("Loading input image...");
-	            const image = yield loadImage(imageUrl);
-	            const imageCanvas = document.getElementById("canvas");
-	            const imageCanvasContext = imageCanvas.getContext("2d");
-	            imageCanvasContext.drawImage(image, 0, 0);
-	            const imageData = imageCanvasContext.getImageData(0, 0, 224, 224);
-	            const inputData = preprocImage(imageData);
-	            const classifier = getClassfier(graphJson, paramsBinary, inst.webgpu(0));
-	            const output = classifier(inputData);
-	            const sortedIndex = Array.from(yield output)
-	                .map((value, index) => [value, index])
-	                .sort(([a], [b]) => b - a)
-	                .map(([, index]) => index);
-	            for (let i = 0; i < 5; ++i) {
-	                logger("Top-" + (i + 1) + " " + synset[sortedIndex[i]]);
-	            }
-	        });
-	    }
-	    inst.registerAsyncServerFunc("testing.runGraph", runGraph);
-	}
 	/**
 	 * A websocket based RPC
 	 */
@@ -2270,7 +2180,6 @@
 	            catch (err) {
 	                this.log("Cannnot initialize WebGPU, " + err.toString());
 	            }
-	            registerSystem(inst, this.logger);
 	            this.inst = inst;
 	            const fcreate = this.inst.getGlobalFunc("rpc.CreateEventDrivenServer");
 	            const messageHandler = fcreate((cbytes) => {
