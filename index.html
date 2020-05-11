@@ -144,6 +144,9 @@
           .sort(([a], [b]) => b - a)
           .map(([, index]) => index);
         clearLog();
+        if (typeof inst.lib.webGPUContext.device.defaultQueue.createFence  == "undefined") {
+          logger("WARNING: createFence is not supported, timing will be inaccurate.");
+        }
         logger(
           "Time cost(ms): end to end=" +
             (tOnCopyCmplete - tStart).toFixed(2) +

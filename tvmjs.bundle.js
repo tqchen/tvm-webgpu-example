@@ -1,10 +1,9 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('@webgpu/types'), require('perf_hooks'), require('ws')) :
-	typeof define === 'function' && define.amd ? define(['exports', '@webgpu/types', 'perf_hooks', 'ws'], factory) :
-	(global = global || self, factory(global.tvmjs = {}, global.webgputypes, global.perf_hooks, global.ws));
-}(this, (function (exports, types, perf_hooks, ws) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('perf_hooks'), require('ws')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'perf_hooks', 'ws'], factory) :
+	(global = global || self, factory(global.tvmjs = {}, global.perf_hooks, global.ws));
+}(this, (function (exports, perf_hooks, ws) { 'use strict';
 
-	types = types && Object.prototype.hasOwnProperty.call(types, 'default') ? types['default'] : types;
 	perf_hooks = perf_hooks && Object.prototype.hasOwnProperty.call(perf_hooks, 'default') ? perf_hooks['default'] : perf_hooks;
 	ws = ws && Object.prototype.hasOwnProperty.call(ws, 'default') ? ws['default'] : ws;
 
@@ -571,7 +570,6 @@
 	 * under the License.
 	 */
 
-
 	/**
 	 * DetectGPU device in the environment.
 	 */
@@ -606,14 +604,20 @@
 	     */
 	    sync() {
 	        return __awaiter(this, void 0, void 0, function* () {
-	            const fence = this.device.defaultQueue.createFence();
-	            this.device.defaultQueue.signal(fence, 1);
-	            if (this.numPendingReads != 0) {
-	                // eslint-disable-next-line @typescript-eslint/no-empty-function
-	                yield Promise.all([fence.onCompletion(1), this.pendingRead]);
+	            if (typeof this.device.defaultQueue.createFence != "undefined") {
+	                const fence = this.device.defaultQueue.createFence();
+	                this.device.defaultQueue.signal(fence, 1);
+	                if (this.numPendingReads != 0) {
+	                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+	                    yield Promise.all([fence.onCompletion(1), this.pendingRead]);
+	                }
+	                else {
+	                    yield fence.onCompletion(1);
+	                }
 	            }
 	            else {
-	                yield fence.onCompletion(1);
+	                console.log("WARNING: createFence is not supported timing info for GPU compute can be inaccurate");
+	                yield this.pendingRead;
 	            }
 	        });
 	    }
@@ -1376,7 +1380,7 @@
 	        this.packedLoadParams(paramBinary);
 	    }
 	    /**
-	     * Benchmark stable execution of the graph.
+	     * Benchmark stable execution of the graph(without data copy).
 	     * @params ctx The context to sync during each run.
 	     * @number The number of times to compute the average.
 	     * @repeat The number of times to repeat the run.
