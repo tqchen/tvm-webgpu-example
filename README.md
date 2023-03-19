@@ -1,6 +1,8 @@
 TVM WebGPU Example
 ==================
 
+NOTE: This example is out dated, checkout https://github.com/mlc-ai/web-stable-diffusion instead
+
 This is an example project for building a tvm webgpu-backed module and deploy it to the web.
 
 ## Try it out
